@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+<link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+
+    <title>Login</title>
+    <style>
+        /* #background {
+            background: linear-gradient(#e66465, #9198e5);
+                        animation-fill-mode: forwards;
+        } */
+
+        /* body {
+            height: 700px;
+        } */
+
+        input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
+#background {
+    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background-size: 400% 400%;
+    animation: gradient 100s ease infinite;
+}
+
+@keyframes gradient {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+        /* .animate {
+            animation: change .5s 1;
+        }
+
+        .revert {
+            animation: revert 1s 1;
+        } */
+
+        /* @keyframes change {
+  from {background-color: #ccff90;}
+  to {background-color: #76ff03;}
+}
+
+@keyframes revert {
+  from {background-color: #76ff03;}
+  to {background-color: #ccff90;}
+} */
+    </style>
+    <script type="text/javascript">
+    let DEFAULT_BPM= 120;
+        const MAX_BPM=200;
+const MIN_BPM=20;
+const beepDuration = .05;
+
+const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+const analyser = ctx.createAnalyser();
+
+analyser.fftSize = 256;
+var bufferLength = analyser.frequencyBinCount;
+console.log(bufferLength);
+var dataArray = new Uint8Array(bufferLength);
+
+
+console.log(dataArray);
+
+
+let background;
+let o;
+let status="stopped";
+let countdown=false;
+
+
+
+function draw() {
+  drawVisual = requestAnimationFrame(draw);
+
+      analyser.getByteFrequencyData(dataArray);
+
+  
+//   myCanvas.fillStyle = 'red';
+//   myCanvas.fillRect(0, 0, WIDTH, HEIGHT);
+
+myCanvas.clearRect(0, 0, WIDTH, HEIGHT);
+
+  myCanvas.lineWidth = .1;
+      myCanvas.strokeStyle = 'rgb(0, 0, 0)';
+
+      myCanvas.beginPath();
+  var sliceWidth = WIDTH * 1.0 / bufferLength;
+      var x = 0;
+  
+  for(var i = 0; i < bufferLength; i++) {
+   
+        var v = dataArray[i] / 128.0;
+        var y = v * HEIGHT/2;
+
+        if(i === 0) {
+          myCanvas.moveTo(x, y);
+        } else {
+          myCanvas.lineTo(x, y);
+        }
+
+        x += sliceWidth;
+      };
+  
+  myCanvas.lineTo(canvas.width, canvas.height/2);
+      myCanvas.stroke();
+    };
+
+function startNewOscillator(time) {
+            let bpm = document.getElementById('bpmInput').value
+        let interval = 60/bpm;
+    let o = ctx.createOscillator();
+    
+o.type = 'triangle';
+o.frequency.setValueAtTime(440, ctx.currentTime); // value in hertz
+let initial = time+interval;
+o.start(initial);
+
+void background.offsetWidth; // trigger a DOM reflow
+o.connect(analyser);
+analyser.connect(ctx.destination);
+draw();
+o.connect(ctx.destination)
+o.stop(initial+beepDuration);
+o.onended = function () {
+    if (status!=="stopped") {
+background.classList.remove("animate");
+background.classList.remove("revert");
+
+        startNewOscillator(initial)
+    }
+
+}
+}
+
+function play() {
+        if (ctx.state === "running" && status ==="running") {
+        status="stopped";
+    } else {
+        status="running"
+        startNewOscillator(ctx.currentTime);
+    }
+}
+
+document.addEventListener('keyup', event => {
+  if (event.code === 'Space') {
+    play();
+  }
+});
+
+window.addEventListener('wheel', function(event)
+{
+ if (event.deltaY < 0)
+ {
+    if (DEFAULT_BPM < MAX_BPM)   DEFAULT_BPM++;
+ }
+ else if (event.deltaY > 0)
+ {
+   if (DEFAULT_BPM > MIN_BPM) DEFAULT_BPM--;
+ }
+ document.getElementById('bpmInput').value = DEFAULT_BPM;
+
+});
+
+
+    </script>
+  <body id="background">
+    <div class="h-screen">
+    <div class="flex flex-col content-center h-full w-full justify-center fixed">
+        <canvas class="visualizer fixed w-full";id="myCanvas";width="640" height="50"></canvas>
+
+<input id="bpmInput" type="number" class="h-32 bg-transparent border-none overflow-hidden appearance-none text-6xl self-center w-56 text-center text-white m-0">
+<button class="border-solid border-black px-4 py-4 border-4 self-center w-24 text-white" onClick="play()">Play</button>
+      </div>
+
+
+      <script type="text/javascript">
+
+const bpmInput = document.getElementById('bpmInput');
+background =  document.getElementById('background');
+bpmInput.value = DEFAULT_BPM;
+bpmInput.setAttribute("min", MIN_BPM);
+bpmInput.setAttribute("max", MAX_BPM);
+
+bpmInput.addEventListener('change', (event) => {
+    DEFAULT_BPM =event.target.value;
+    document.getElementById('bpmInput').value = DEFAULT_BPM;
+});
+var WIDTH = 300;
+var HEIGHT = 300;
+var canvas = document.querySelector('.visualizer');
+var myCanvas = canvas.getContext("2d");
+</script>
+</div>
+</body>
+
+
+</html>
